@@ -12,15 +12,77 @@ import * as main from '../src/main'
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
 
-// Other utilities
-const timeRegex = /^\d{2}:\d{2}:\d{2}/
-
 // Mock the GitHub Actions core library
 let debugMock: jest.SpyInstance
 let errorMock: jest.SpyInstance
 let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 let setOutputMock: jest.SpyInstance
+
+enum rankingCVSS{
+  HIGH,
+  MEDIUM,
+  LOW,
+  CRITICAL,
+}
+
+interface Vulnerability {
+  'id': string,
+  'title': string,
+  'fixedIn': Array<string>,
+  'severity': rankingCVSS
+  'cvssScore': number
+}
+
+interface SnykReport {
+  vulnerabilities: [
+    Vulnerability,
+  ]
+  ok: boolean
+}
+
+function getFailedReports(vulnerabilities: Array<SnykReport>): Array<SnykReport> {
+  return vulnerabilities.filter((snykReport: SnykReport) => {
+    return !snykReport.ok
+  });
+}
+
+function getVulnerabilities() {
+  getInputMock.mockImplementation((name: string): string => {
+    switch (name) {
+      case 'file-path':
+        return '../__tests__/mock-vuln.json'
+      default:
+        return ''
+    }
+  })
+
+  let vulnerabilities = main.getVulnerabilitiesFileContent()
+  return vulnerabilities
+}
+
+function removeDuplicateVulnerabilities(vulnerabilitiesReport: Array<Vulnerability>) {
+
+  const uniqueVulnerabilities: Array<Vulnerability> = vulnerabilitiesReport.reduce((accumulator: Array<Vulnerability>, current) => {
+    if (!accumulator.find((item) => item.id === current.id)) {
+      accumulator.push(current);
+    }
+    return accumulator;
+  }, []);
+
+  vulnerabilitiesReport = uniqueVulnerabilities;
+
+  return vulnerabilitiesReport;
+
+}
+
+function removeAllDuplicateVulnerabilites(failedReports: Array<SnykReport>) {
+  failedReports.forEach((failedReport) => {
+    // @ts-ignore
+    failedReport.vulnerabilities = removeDuplicateVulnerabilities(failedReport.vulnerabilities);
+  })
+  return failedReports;
+}
 
 describe('action', () => {
   beforeEach(() => {
@@ -33,57 +95,22 @@ describe('action', () => {
     setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
   })
 
-  it('sets the time output', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'milliseconds':
-          return '500'
-        default:
-          return ''
-      }
-    })
-
-    await main.run()
-    expect(runMock).toHaveReturned()
-
-    // Verify that all of the core library functions were called correctly
-    expect(debugMock).toHaveBeenNthCalledWith(1, 'Waiting 500 milliseconds ...')
-    expect(debugMock).toHaveBeenNthCalledWith(
-      2,
-      expect.stringMatching(timeRegex)
-    )
-    expect(debugMock).toHaveBeenNthCalledWith(
-      3,
-      expect.stringMatching(timeRegex)
-    )
-    expect(setOutputMock).toHaveBeenNthCalledWith(
-      1,
-      'time',
-      expect.stringMatching(timeRegex)
-    )
-    expect(errorMock).not.toHaveBeenCalled()
+  it('should get vulnerabilities file content', async () => {
+    let vulnerabilities = getVulnerabilities()
+    expect(vulnerabilities).not.toBeNull();
   })
 
-  it('sets a failed status', async () => {
-    // Set the action's inputs as return values from core.getInput()
-    getInputMock.mockImplementation((name: string): string => {
-      switch (name) {
-        case 'milliseconds':
-          return 'this is not a number'
-        default:
-          return ''
-      }
-    })
+  it('should only get non-ok scan', async () => {
+    let vulnerabilities = getVulnerabilities();
+    let failedReports = getFailedReports(vulnerabilities);
+    expect(failedReports).toHaveLength(1);
+    expect(failedReports[0].vulnerabilities.length).toBeGreaterThan(0);
+  })
 
-    await main.run()
-    expect(runMock).toHaveReturned()
+  it('should remove duplicate vuln', async () => {
+    let vulnerabilities = getVulnerabilities();
+    let failedReports = getFailedReports(vulnerabilities);
 
-    // Verify that all of the core library functions were called correctly
-    expect(setFailedMock).toHaveBeenNthCalledWith(
-      1,
-      'milliseconds not a number'
-    )
-    expect(errorMock).not.toHaveBeenCalled()
+    expect(removeAllDuplicateVulnerabilites(failedReports)[0].vulnerabilities.length).toBe(6);
   })
 })

@@ -1,5 +1,16 @@
 import * as core from '@actions/core'
-import { wait } from './wait'
+import fs = require('fs')
+const path = require('path')
+
+export function getVulnerabilitiesFileContent() {
+  const basePath = __dirname
+  const filePath = path.join(basePath, core.getInput('file-path'))
+
+  core.debug(`Searching ${filePath} ...`)
+
+  const fileContents = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  return fileContents;
+}
 
 /**
  * The main function for the action.
@@ -7,20 +18,13 @@ import { wait } from './wait'
  */
 export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
+    const vulnerabilites = getVulnerabilitiesFileContent();
 
-    // Debug logs are only output if the `ACTIONS_STEP_DEBUG` secret is true
-    core.debug(`Waiting ${ms} milliseconds ...`)
 
-    // Log the current timestamp, wait, then log the new timestamp
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
-
-    // Set outputs for other workflow steps to use
-    core.setOutput('time', new Date().toTimeString())
   } catch (error) {
     // Fail the workflow run if an error occurs
-    if (error instanceof Error) core.setFailed(error.message)
+    console.log('error', error);
+    // @ts-ignore
+    core.setFailed(error.message)
   }
 }
