@@ -8,6 +8,7 @@
 
 import * as core from '@actions/core'
 import * as main from '../src/main'
+import { VulnerabilitiesTransformer } from '../src/vulnerabilitiesTransformer'
 
 // Mock the action's main function
 const runMock = jest.spyOn(main, 'run')
@@ -19,72 +20,10 @@ let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 let setOutputMock: jest.SpyInstance
 
-enum rankingCVSS{
-  HIGH,
-  MEDIUM,
-  LOW,
-  CRITICAL,
-}
-
-interface Vulnerability {
-  'id': string,
-  'title': string,
-  'fixedIn': Array<string>,
-  'severity': rankingCVSS
-  'cvssScore': number
-}
-
-interface SnykReport {
-  vulnerabilities: [
-    Vulnerability,
-  ]
-  ok: boolean
-}
-
-function getFailedReports(vulnerabilities: Array<SnykReport>): Array<SnykReport> {
-  return vulnerabilities.filter((snykReport: SnykReport) => {
-    return !snykReport.ok
-  });
-}
-
-function getVulnerabilities() {
-  getInputMock.mockImplementation((name: string): string => {
-    switch (name) {
-      case 'file-path':
-        return '../__tests__/mock-vuln.json'
-      default:
-        return ''
-    }
-  })
-
-  let vulnerabilities = main.getVulnerabilitiesFileContent()
-  return vulnerabilities
-}
-
-function removeDuplicateVulnerabilities(vulnerabilitiesReport: Array<Vulnerability>) {
-
-  const uniqueVulnerabilities: Array<Vulnerability> = vulnerabilitiesReport.reduce((accumulator: Array<Vulnerability>, current) => {
-    if (!accumulator.find((item) => item.id === current.id)) {
-      accumulator.push(current);
-    }
-    return accumulator;
-  }, []);
-
-  vulnerabilitiesReport = uniqueVulnerabilities;
-
-  return vulnerabilitiesReport;
-
-}
-
-function removeAllDuplicateVulnerabilites(failedReports: Array<SnykReport>) {
-  failedReports.forEach((failedReport) => {
-    // @ts-ignore
-    failedReport.vulnerabilities = removeDuplicateVulnerabilities(failedReport.vulnerabilities);
-  })
-  return failedReports;
-}
-
 describe('action', () => {
+  let vulnerabilities: any;
+  let vulnerabilitiesTransformer = new VulnerabilitiesTransformer();
+
   beforeEach(() => {
     jest.clearAllMocks()
 
@@ -93,24 +32,33 @@ describe('action', () => {
     getInputMock = jest.spyOn(core, 'getInput').mockImplementation()
     setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation()
     setOutputMock = jest.spyOn(core, 'setOutput').mockImplementation()
+
+    getInputMock.mockImplementation((name: string): string => {
+      switch (name) {
+        case 'file-path':
+          return '../__tests__/mock-vuln.json'
+        default:
+          return ''
+      }
+    })
+
+    vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent()
   })
 
   it('should get vulnerabilities file content', async () => {
-    let vulnerabilities = getVulnerabilities()
     expect(vulnerabilities).not.toBeNull();
   })
 
   it('should only get non-ok scan', async () => {
-    let vulnerabilities = getVulnerabilities();
-    let failedReports = getFailedReports(vulnerabilities);
+    let failedReports = vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
     expect(failedReports).toHaveLength(1);
     expect(failedReports[0].vulnerabilities.length).toBeGreaterThan(0);
   })
 
   it('should remove duplicate vuln', async () => {
-    let vulnerabilities = getVulnerabilities();
-    let failedReports = getFailedReports(vulnerabilities);
+    let failedReports = vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
+    let uniqueVulnerabilities = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilites(failedReports)[0];
 
-    expect(removeAllDuplicateVulnerabilites(failedReports)[0].vulnerabilities.length).toBe(6);
+    expect(uniqueVulnerabilities.vulnerabilities.length).toBe(6);
   })
 })

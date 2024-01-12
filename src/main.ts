@@ -1,16 +1,9 @@
 import * as core from '@actions/core'
 import fs = require('fs')
+import { VulnerabilitiesTransformer } from './vulnerabilitiesTransformer'
 const path = require('path')
 
-export function getVulnerabilitiesFileContent() {
-  const basePath = __dirname
-  const filePath = path.join(basePath, core.getInput('file-path'))
 
-  core.debug(`Searching ${filePath} ...`)
-
-  const fileContents = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  return fileContents;
-}
 
 /**
  * The main function for the action.
@@ -18,7 +11,11 @@ export function getVulnerabilitiesFileContent() {
  */
 export async function run(): Promise<void> {
   try {
-    const vulnerabilites = getVulnerabilitiesFileContent();
+
+    let vulnerabilitiesTransformer = new VulnerabilitiesTransformer();
+
+
+    const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
 
 
   } catch (error) {
