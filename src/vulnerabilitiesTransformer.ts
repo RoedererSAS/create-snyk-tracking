@@ -33,15 +33,13 @@ export class VulnerabilitiesTransformer {
     vulnerabilitiesReport = uniqueVulnerabilities
 
     return vulnerabilitiesReport
-
   }
 
-  removeAllDuplicateVulnerabilites(failedReports: Array<SnykReport>) {
+  removeAllDuplicateVulnerabilities(failedReports: Array<SnykReport>): Array<SnykReport> {
     failedReports.forEach((failedReport) => {
       // @ts-ignore
       failedReport.vulnerabilities = this.removeDuplicateVulnerabilities(failedReport.vulnerabilities)
     })
     return failedReports
   }
-
 }

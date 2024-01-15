@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import fs = require('fs')
 import { VulnerabilitiesTransformer } from './vulnerabilitiesTransformer'
+import { Octokit } from '@octokit/core'
 const path = require('path')
 
 
@@ -11,6 +12,10 @@ const path = require('path')
  */
 export async function run(): Promise<void> {
   try {
+
+    const octokit = new Octokit({
+      auth: core.getInput('gh-token')
+    });
 
     let vulnerabilitiesTransformer = new VulnerabilitiesTransformer();
 

@@ -20,6 +20,8 @@ let getInputMock: jest.SpyInstance
 let setFailedMock: jest.SpyInstance
 let setOutputMock: jest.SpyInstance
 
+type request = (title: string, body: string) => unknown
+
 describe('action', () => {
   let vulnerabilities: any;
   let vulnerabilitiesTransformer = new VulnerabilitiesTransformer();
@@ -57,8 +59,16 @@ describe('action', () => {
 
   it('should remove duplicate vuln', async () => {
     let failedReports = vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
-    let uniqueVulnerabilities = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilites(failedReports)[0];
+    let uniqueVulnerabilities = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(failedReports)[0];
 
     expect(uniqueVulnerabilities.vulnerabilities.length).toBe(6);
+  })
+
+  it('', () => {
+    let failedReports = vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
+    let uniqueVulnerabilities = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(failedReports)[0];
+
+
+
   })
 })

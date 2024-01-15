@@ -11,6 +11,13 @@ inputs:
   file-path:
     description: 'Path of snyk vulnerabilities file'
     required: true
+  issue-tracker:
+    description: 'which platform to create issue on'
+    required: true
+  gh-token:
+    description: 'github token for authentication'
+    required: false
+
 
 runs:
   using: node20
