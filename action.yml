@@ -17,6 +17,9 @@ inputs:
   gh-token:
     description: 'github token for authentication'
     required: false
+  repo-info:
+    description: 'repo info, format : "owner/repo"'
+    required: false
 
 
 runs:

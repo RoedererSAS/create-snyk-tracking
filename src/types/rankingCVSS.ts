@@ -1,6 +1,6 @@
-export enum rankingCVSS{
+export enum rankingCVSS {
   HIGH,
   MEDIUM,
   LOW,
-  CRITICAL,
+  CRITICAL
 }
