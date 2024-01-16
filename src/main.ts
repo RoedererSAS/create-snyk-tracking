@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
 import { VulnerabilitiesTransformer } from './vulnerabilitiesTransformer'
 import { Octokit } from '@octokit/core'
-import { GithubIssueCreator } from './githubIssueCreator'
+import { GithubissueCreator } from './githubissueCreator'
 
-export function initIssueCreator(): GithubIssueCreator {
+export function initIssueCreator(): GithubissueCreator {
   const octokit = new Octokit({
     auth: core.getInput('gh-token')
   })
@@ -11,7 +11,7 @@ export function initIssueCreator(): GithubIssueCreator {
   const owner = repoInfo.split('/')[0]
   const repository = repoInfo.split('/')[1]
 
-  return new GithubIssueCreator(octokit, owner, repository)
+  return new GithubissueCreator(octokit, owner, repository)
 }
 
 /**

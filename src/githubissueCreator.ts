@@ -1,10 +1,10 @@
 import { Octokit } from '@octokit/core'
 import * as console from 'console'
-import { IssueCreatorInterface } from './interfaces/issueCreatorInterface'
+import { IssuecreatorInterface } from './interfaces/issuecreatorInterface'
 
 type Issue = { id: string }
 
-export class GithubIssueCreator implements IssueCreatorInterface {
+export class GithubissueCreator implements IssuecreatorInterface {
   octokit
   username: string
   repository: string

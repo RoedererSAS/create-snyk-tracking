@@ -43,6 +43,7 @@ rules:
     'import/no-namespace': 'off',
     'no-console': 'off',
     'no-unused-vars': 'off',
+    'no-shadow': 'off',
     'prettier/prettier': 'error',
     'semi': 'off',
     '@typescript-eslint/array-type': 'error',
@@ -79,5 +80,6 @@ rules:
     '@typescript-eslint/semi': ['error', 'never'],
     '@typescript-eslint/space-before-function-paren': 'off',
     '@typescript-eslint/type-annotation-spacing': 'error',
-    '@typescript-eslint/unbound-method': 'error'
+    '@typescript-eslint/unbound-method': 'error',
+    "@typescript-eslint/no-shadow": "error"
   }
