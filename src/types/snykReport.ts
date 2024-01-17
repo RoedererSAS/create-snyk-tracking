@@ -1,8 +1,6 @@
 import { Vulnerability } from './vulnerability'
 
 export interface SnykReport {
-  vulnerabilities: [
-    Vulnerability,
-  ]
+  vulnerabilities: [Vulnerability]
   ok: boolean
 }

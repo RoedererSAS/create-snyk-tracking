@@ -1,10 +1,18 @@
 import * as core from '@actions/core'
-import fs = require('fs')
 import { VulnerabilitiesTransformer } from './vulnerabilitiesTransformer'
 import { Octokit } from '@octokit/core'
-const path = require('path')
+import { GithubissueCreator } from './githubissueCreator'
 
+export function initIssueCreator(): GithubissueCreator {
+  const octokit = new Octokit({
+    auth: core.getInput('gh-token')
+  })
+  const repoInfo = core.getInput('repo-info')
+  const owner = repoInfo.split('/')[0]
+  const repository = repoInfo.split('/')[1]
 
+  return new GithubissueCreator(octokit, owner, repository)
+}
 
 /**
  * The main function for the action.
@@ -12,21 +20,20 @@ const path = require('path')
  */
 export async function run(): Promise<void> {
   try {
+    const vulnerabilitiesTransformer = new VulnerabilitiesTransformer()
 
-    const octokit = new Octokit({
-      auth: core.getInput('gh-token')
-    });
+    const vulnerabilities =
+      vulnerabilitiesTransformer.getVulnerabilitiesFileContent()
 
-    let vulnerabilitiesTransformer = new VulnerabilitiesTransformer();
+    vulnerabilitiesTransformer.getFailedReports(vulnerabilities)
 
-
-    const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
-
-
+    const issueCreator = initIssueCreator()
+    console.log(issueCreator)
+    await issueCreator.createIssue('aaa', 'aaaa')
   } catch (error) {
     // Fail the workflow run if an error occurs
-    console.log('error', error);
-    // @ts-ignore
+    console.log('error', error)
+    // @ts-expect-error idk the type of error for now
     core.setFailed(error.message)
   }
 }

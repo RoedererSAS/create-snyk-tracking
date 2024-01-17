@@ -5,7 +5,8 @@ import * as core from '@actions/core'
 import * as fs from 'fs'
 
 export class VulnerabilitiesTransformer {
-  public getVulnerabilitiesFileContent() {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  getVulnerabilitiesFileContent(): any {
     const basePath = __dirname
     const filePath = path.join(basePath, core.getInput('file-path'))
 
@@ -15,31 +16,37 @@ export class VulnerabilitiesTransformer {
     return fileContents
   }
 
-  getFailedReports(vulnerabilities: Array<SnykReport>): Array<SnykReport> {
+  getFailedReports(vulnerabilities: SnykReport[]): SnykReport[] {
     return vulnerabilities.filter((snykReport: SnykReport) => {
       return !snykReport.ok
     })
   }
 
-  removeDuplicateVulnerabilities(vulnerabilitiesReport: Array<Vulnerability>) {
-
-    const uniqueVulnerabilities: Array<Vulnerability> = vulnerabilitiesReport.reduce((accumulator: Array<Vulnerability>, current) => {
-      if (!accumulator.find((item) => item.id === current.id)) {
-        accumulator.push(current)
-      }
-      return accumulator
-    }, [])
+  removeDuplicateVulnerabilities(
+    vulnerabilitiesReport: Vulnerability[]
+  ): Vulnerability[] {
+    const uniqueVulnerabilities: Vulnerability[] = vulnerabilitiesReport.reduce(
+      (accumulator: Vulnerability[], current) => {
+        if (!accumulator.find(item => item.id === current.id)) {
+          accumulator.push(current)
+        }
+        return accumulator
+      },
+      []
+    )
 
     vulnerabilitiesReport = uniqueVulnerabilities
 
     return vulnerabilitiesReport
   }
 
-  removeAllDuplicateVulnerabilities(failedReports: Array<SnykReport>): Array<SnykReport> {
-    failedReports.forEach((failedReport) => {
-      // @ts-ignore
-      failedReport.vulnerabilities = this.removeDuplicateVulnerabilities(failedReport.vulnerabilities)
-    })
+  removeAllDuplicateVulnerabilities(failedReports: SnykReport[]): SnykReport[] {
+    for (const failedReport of failedReports) {
+      // @ts-expect-error removeDuplicateVulnerabilities can send back a tuple
+      failedReport.vulnerabilities = this.removeDuplicateVulnerabilities(
+        failedReport.vulnerabilities
+      )
+    }
     return failedReports
   }
 }
