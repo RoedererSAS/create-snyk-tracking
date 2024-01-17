@@ -55,7 +55,10 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          file-path: 'vuln.json'
+          issue-tracker: 'github'
+          gh-token: 'rdr'
+          repo-info: 'tracking'
 
       - name: Print Output
         id: output

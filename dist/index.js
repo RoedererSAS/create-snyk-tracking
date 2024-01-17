@@ -4163,7 +4163,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 6717:
+/***/ 4402:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -4192,9 +4192,9 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.GithubIssueCreator = void 0;
+exports.GithubissueCreator = void 0;
 const console = __importStar(__nccwpck_require__(6206));
-class GithubIssueCreator {
+class GithubissueCreator {
     octokit;
     username;
     repository;
@@ -4222,7 +4222,7 @@ class GithubIssueCreator {
     }
     listIssues() { }
 }
-exports.GithubIssueCreator = GithubIssueCreator;
+exports.GithubissueCreator = GithubissueCreator;
 
 
 /***/ }),
@@ -4260,7 +4260,7 @@ exports.run = exports.initIssueCreator = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const vulnerabilitiesTransformer_1 = __nccwpck_require__(9542);
 const core_1 = __nccwpck_require__(6762);
-const githubIssueCreator_1 = __nccwpck_require__(6717);
+const githubissueCreator_1 = __nccwpck_require__(4402);
 function initIssueCreator() {
     const octokit = new core_1.Octokit({
         auth: core.getInput('gh-token')
@@ -4268,7 +4268,7 @@ function initIssueCreator() {
     const repoInfo = core.getInput('repo-info');
     const owner = repoInfo.split('/')[0];
     const repository = repoInfo.split('/')[1];
-    return new githubIssueCreator_1.GithubIssueCreator(octokit, owner, repository);
+    return new githubissueCreator_1.GithubissueCreator(octokit, owner, repository);
 }
 exports.initIssueCreator = initIssueCreator;
 /**
