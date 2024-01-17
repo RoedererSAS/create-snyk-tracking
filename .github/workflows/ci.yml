@@ -59,7 +59,3 @@ jobs:
           issue-tracker: 'github'
           gh-token: 'rdr'
           repo-info: 'tracking'
-
-      - name: Print Output
-        id: output
-        run: echo "${{ steps.test-action.outputs.time }}"
