@@ -6,9 +6,9 @@ import * as fs from 'fs'
 
 export class VulnerabilitiesTransformer {
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  getVulnerabilitiesFileContent(needBasePath: boolean = false): any {
-    let filePath = core.getInput('file-path');
-    if(needBasePath){
+  getVulnerabilitiesFileContent(needBasePath = false): any {
+    let filePath = core.getInput('file-path')
+    if (needBasePath) {
       const basePath = __dirname
       filePath = path.join(basePath, core.getInput('file-path'))
     }

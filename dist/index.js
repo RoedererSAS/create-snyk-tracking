@@ -4334,9 +4334,12 @@ const core = __importStar(__nccwpck_require__(2186));
 const fs = __importStar(__nccwpck_require__(7147));
 class VulnerabilitiesTransformer {
     /* eslint-disable @typescript-eslint/no-explicit-any */
-    getVulnerabilitiesFileContent() {
-        const basePath = __dirname;
-        const filePath = path_1.default.join(basePath, core.getInput('file-path'));
+    getVulnerabilitiesFileContent(needBasePath = false) {
+        let filePath = core.getInput('file-path');
+        if (needBasePath) {
+            const basePath = __dirname;
+            filePath = path_1.default.join(basePath, core.getInput('file-path'));
+        }
         core.debug(`Searching ${filePath} ...`);
         const fileContents = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         return fileContents;
