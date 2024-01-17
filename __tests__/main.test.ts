@@ -37,7 +37,7 @@ describe('action', () => {
       }
     })
 
-    vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent()
+    vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent(true)
   })
 
   it('should get vulnerabilities file content', async () => {
