@@ -6,7 +6,6 @@
 [![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-
 ## Create your own action
 
 [Base template](https://github.com/actions/typescript-action)
@@ -51,6 +50,7 @@ need to perform some initial setup steps before you can develop your action.
 
    ...
    ```
+   
 ## Development
 
 1. Create a new branch
