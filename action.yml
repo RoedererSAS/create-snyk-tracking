@@ -14,6 +14,9 @@ inputs:
   issue-tracker:
     description: 'which platform to create issue on'
     required: true
+  assignee:
+    description: 'assignee of the issue'
+    required: true
   gh-token:
     description: 'github token for authentication'
     required: false
