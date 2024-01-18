@@ -27,11 +27,11 @@ describe('action', () => {
         case 'file-path':
           return '../__tests__/mock-vuln.json'
         case 'issue-tracker':
-          return ''
+          return 'github'
         case 'gh-token':
-          return ''
+          return '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'
         case 'repo-info':
-          return 'rdr/repo-name'
+          return 'RoedererSAS/create-snyk-tracking'
         default:
           return ''
       }
@@ -62,4 +62,15 @@ describe('action', () => {
 
     expect(uniqueVulnerabilities.vulnerabilities.length).toBe(6)
   })
+
+  // it('should ', async () => {
+  //   const failedReports =
+  //     vulnerabilitiesTransformer.getFailedReports(vulnerabilities)
+  //   const uniqueVulnerabilities =
+  //     vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(
+  //       failedReports
+  //     )[0]
+  //
+  //
+  // })
 })

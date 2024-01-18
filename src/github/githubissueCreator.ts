@@ -1,8 +1,6 @@
 import { Octokit } from '@octokit/core'
 import * as console from 'console'
-import { IssuecreatorInterface } from './interfaces/issuecreatorInterface'
-
-type Issue = { id: string }
+import { IssuecreatorInterface } from '../interfaces/issuecreatorInterface'
 
 export class GithubissueCreator implements IssuecreatorInterface {
   octokit
@@ -40,10 +38,4 @@ export class GithubissueCreator implements IssuecreatorInterface {
       console.error('Error creating issue:', error)
     }
   }
-
-  isIssueInList(listIssue: Issue[]): void {
-    console.error(listIssue)
-  }
-
-  listIssues(): void {}
 }

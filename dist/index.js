@@ -4163,7 +4163,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4402:
+/***/ 8313:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -4221,12 +4221,69 @@ class GithubissueCreator {
             console.error('Error creating issue:', error);
         }
     }
-    isIssueInList(listIssue) {
-        console.error(listIssue);
-    }
-    listIssues() { }
 }
 exports.GithubissueCreator = GithubissueCreator;
+
+
+/***/ }),
+
+/***/ 665:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.GithubissueLister = void 0;
+const console = __importStar(__nccwpck_require__(6206));
+class GithubissueLister {
+    octokit;
+    username;
+    repository;
+    constructor(octokit, username, repository) {
+        this.octokit = octokit;
+        this.username = username;
+        this.repository = repository;
+    }
+    async getListIssues() {
+        try {
+            const response = await this.octokit.request('GET /repos/:owner/:repo/issues', {
+                owner: this.username,
+                repo: this.repository,
+                state: 'open',
+                labels: 'security',
+                per_page: 100
+            });
+            return response.data;
+        }
+        catch (error) {
+            console.error('Error listing issues:', error);
+        }
+    }
+}
+exports.GithubissueLister = GithubissueLister;
 
 
 /***/ }),
@@ -4260,11 +4317,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = exports.initIssueCreator = void 0;
+exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const vulnerabilitiesTransformer_1 = __nccwpck_require__(9542);
 const core_1 = __nccwpck_require__(6762);
-const githubissueCreator_1 = __nccwpck_require__(4402);
+const githubissueCreator_1 = __nccwpck_require__(8313);
+const githubissueLister_1 = __nccwpck_require__(665);
 function initIssueCreator() {
     const octokit = new core_1.Octokit({
         auth: core.getInput('gh-token')
@@ -4275,18 +4333,50 @@ function initIssueCreator() {
     const repository = repoInfo.split('/')[1];
     return new githubissueCreator_1.GithubissueCreator(octokit, owner, repository, assignee);
 }
-exports.initIssueCreator = initIssueCreator;
+function initIssueLister() {
+    const octokit = new core_1.Octokit({
+        auth: core.getInput('gh-token')
+    });
+    const repoInfo = core.getInput('repo-info');
+    const owner = repoInfo.split('/')[0];
+    const repository = repoInfo.split('/')[1];
+    return new githubissueLister_1.GithubissueLister(octokit, owner, repository);
+}
+function extractVulnerabilitiesReport() {
+    const vulnerabilitiesTransformer = new vulnerabilitiesTransformer_1.VulnerabilitiesTransformer();
+    const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
+    const failedReports = vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
+    const uniqueVulnerabilitiesByReport = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(failedReports);
+    return uniqueVulnerabilitiesByReport;
+}
+function extractIssuesSnykIds(listIssues) {
+    const listIssuesIds = listIssues.map(issue => {
+        //get text beetween [ & ]
+        const match = issue.title.match(/\[(.*?)]/);
+        return match ? match[1] : '';
+    });
+    return listIssuesIds;
+}
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
  */
 async function run() {
     try {
-        const vulnerabilitiesTransformer = new vulnerabilitiesTransformer_1.VulnerabilitiesTransformer();
-        const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
-        vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
+        const vulnerabilitiesReport = extractVulnerabilitiesReport();
         const issueCreator = initIssueCreator();
-        await issueCreator.createIssue('aaa', 'aaaa');
+        const issueLister = initIssueLister();
+        const listIssues = await issueLister.getListIssues();
+        if (listIssues !== undefined) {
+            const listIssuesTitle = extractIssuesSnykIds(listIssues);
+            for (const report of vulnerabilitiesReport) {
+                for (const vulnerability of report.vulnerabilities) {
+                    if (!listIssuesTitle.includes(vulnerability.id)) {
+                        await issueCreator.createIssue(`${vulnerability.cvssScore} - ${vulnerability.title} [${vulnerability.id}]`, vulnerability.description);
+                    }
+                }
+            }
+        }
     }
     catch (error) {
         // Fail the workflow run if an error occurs
