@@ -6,7 +6,7 @@ import { GithubissueLister } from './github/githubissueLister'
 import { SnykReport } from './types/snykReport'
 import { Issue } from './types/issue'
 
-function initIssueCreator(): GithubissueCreator {
+export function initIssueCreator(): GithubissueCreator {
   const octokit = new Octokit({
     auth: core.getInput('gh-token')
   })
@@ -18,7 +18,7 @@ function initIssueCreator(): GithubissueCreator {
   return new GithubissueCreator(octokit, owner, repository, assignee)
 }
 
-function initIssueLister(): GithubissueLister {
+export function initIssueLister(): GithubissueLister {
   const octokit = new Octokit({
     auth: core.getInput('gh-token')
   })
@@ -29,7 +29,7 @@ function initIssueLister(): GithubissueLister {
   return new GithubissueLister(octokit, owner, repository)
 }
 
-function extractVulnerabilitiesReport(): SnykReport[] {
+export function extractVulnerabilitiesReport(): SnykReport[] {
   const vulnerabilitiesTransformer = new VulnerabilitiesTransformer()
 
   const vulnerabilities =
@@ -42,7 +42,7 @@ function extractVulnerabilitiesReport(): SnykReport[] {
   return uniqueVulnerabilitiesByReport
 }
 
-function extractIssuesSnykIds(listIssues: Issue[]): string[] {
+export function extractIssuesSnykIds(listIssues: Issue[]): string[] {
   const listIssuesIds = listIssues.map(issue => {
     //get text beetween [ & ]
     const match = issue.title.match(/\[(.*?)]/)
@@ -52,6 +52,29 @@ function extractIssuesSnykIds(listIssues: Issue[]): string[] {
   return listIssuesIds
 }
 
+async function createGitHubIssuesForReports(
+  vulnerabilitiesReport: SnykReport[]
+): Promise<void> {
+  const issueCreator = initIssueCreator()
+  const issueLister = initIssueLister()
+
+  const listIssues = await issueLister.getListIssues()
+  if (listIssues !== undefined) {
+    const listIssuesTitle = extractIssuesSnykIds(listIssues)
+
+    for (const report of vulnerabilitiesReport) {
+      for (const vulnerability of report.vulnerabilities) {
+        if (!listIssuesTitle.includes(vulnerability.id)) {
+          await issueCreator.createIssue(
+            `${vulnerability.cvssScore} - ${vulnerability.title} [${vulnerability.id}]`,
+            vulnerability.description
+          )
+        }
+      }
+    }
+  }
+}
+
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -59,24 +82,7 @@ function extractIssuesSnykIds(listIssues: Issue[]): string[] {
 export async function run(): Promise<void> {
   try {
     const vulnerabilitiesReport = extractVulnerabilitiesReport()
-    const issueCreator = initIssueCreator()
-    const issueLister = initIssueLister()
-
-    const listIssues = await issueLister.getListIssues()
-    if (listIssues !== undefined) {
-      const listIssuesTitle = extractIssuesSnykIds(listIssues)
-
-      for (const report of vulnerabilitiesReport) {
-        for (const vulnerability of report.vulnerabilities) {
-          if (!listIssuesTitle.includes(vulnerability.id)) {
-            await issueCreator.createIssue(
-              `${vulnerability.cvssScore} - ${vulnerability.title} [${vulnerability.id}]`,
-              vulnerability.description
-            )
-          }
-        }
-      }
-    }
+    await createGitHubIssuesForReports(vulnerabilitiesReport)
   } catch (error) {
     // Fail the workflow run if an error occurs
     console.log('error', error)

@@ -7,7 +7,11 @@
  */
 
 import * as core from '@actions/core'
+import * as main from '../src/main'
 import { VulnerabilitiesTransformer } from '../src/vulnerabilitiesTransformer'
+import { GithubissueCreator } from '../src/github/githubissueCreator'
+import { GithubissueLister } from '../src/github/githubissueLister'
+import { Issue } from '../src/types/issue'
 
 // Mock the GitHub Actions core library
 let getInputMock: jest.SpyInstance
@@ -63,14 +67,30 @@ describe('action', () => {
     expect(uniqueVulnerabilities.vulnerabilities.length).toBe(6)
   })
 
-  // it('should ', async () => {
-  //   const failedReports =
-  //     vulnerabilitiesTransformer.getFailedReports(vulnerabilities)
-  //   const uniqueVulnerabilities =
-  //     vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(
-  //       failedReports
-  //     )[0]
-  //
-  //
-  // })
+  it('should init a githubIssueCreator', async () => {
+    const githubissueCreator = main.initIssueCreator()
+
+    expect(githubissueCreator).toBeInstanceOf(GithubissueCreator)
+  })
+
+  it('should init a githubIssueLister', async () => {
+    const githubissueLister = main.initIssueLister()
+
+    expect(githubissueLister).toBeInstanceOf(GithubissueLister)
+  })
+
+  it('should extract ids from a list of issues from github', async () => {
+    const listIssues: Issue[] = [
+      { title: '5.3 - Improper Input Validation [SNYK-JS-POSTCSS-5926692]' },
+      {
+        title:
+          '7.5 - Regular Expression Denial of Service (ReDoS) [SNYK-JS-NTHCHECK-1586032]'
+      }
+    ]
+
+    const extractedIds = main.extractIssuesSnykIds(listIssues)
+
+    expect(extractedIds.length).toBe(2)
+    expect(extractedIds[0]).toEqual('SNYK-JS-POSTCSS-5926692')
+  })
 })

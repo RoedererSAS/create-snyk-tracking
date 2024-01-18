@@ -4317,7 +4317,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.run = exports.extractIssuesSnykIds = exports.extractVulnerabilitiesReport = exports.initIssueLister = exports.initIssueCreator = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const vulnerabilitiesTransformer_1 = __nccwpck_require__(9542);
 const core_1 = __nccwpck_require__(6762);
@@ -4333,6 +4333,7 @@ function initIssueCreator() {
     const repository = repoInfo.split('/')[1];
     return new githubissueCreator_1.GithubissueCreator(octokit, owner, repository, assignee);
 }
+exports.initIssueCreator = initIssueCreator;
 function initIssueLister() {
     const octokit = new core_1.Octokit({
         auth: core.getInput('gh-token')
@@ -4342,6 +4343,7 @@ function initIssueLister() {
     const repository = repoInfo.split('/')[1];
     return new githubissueLister_1.GithubissueLister(octokit, owner, repository);
 }
+exports.initIssueLister = initIssueLister;
 function extractVulnerabilitiesReport() {
     const vulnerabilitiesTransformer = new vulnerabilitiesTransformer_1.VulnerabilitiesTransformer();
     const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
@@ -4349,6 +4351,7 @@ function extractVulnerabilitiesReport() {
     const uniqueVulnerabilitiesByReport = vulnerabilitiesTransformer.removeAllDuplicateVulnerabilities(failedReports);
     return uniqueVulnerabilitiesByReport;
 }
+exports.extractVulnerabilitiesReport = extractVulnerabilitiesReport;
 function extractIssuesSnykIds(listIssues) {
     const listIssuesIds = listIssues.map(issue => {
         //get text beetween [ & ]
@@ -4357,6 +4360,22 @@ function extractIssuesSnykIds(listIssues) {
     });
     return listIssuesIds;
 }
+exports.extractIssuesSnykIds = extractIssuesSnykIds;
+async function createGitHubIssuesForReports(vulnerabilitiesReport) {
+    const issueCreator = initIssueCreator();
+    const issueLister = initIssueLister();
+    const listIssues = await issueLister.getListIssues();
+    if (listIssues !== undefined) {
+        const listIssuesTitle = extractIssuesSnykIds(listIssues);
+        for (const report of vulnerabilitiesReport) {
+            for (const vulnerability of report.vulnerabilities) {
+                if (!listIssuesTitle.includes(vulnerability.id)) {
+                    await issueCreator.createIssue(`${vulnerability.cvssScore} - ${vulnerability.title} [${vulnerability.id}]`, vulnerability.description);
+                }
+            }
+        }
+    }
+}
 /**
  * The main function for the action.
  * @returns {Promise<void>} Resolves when the action is complete.
@@ -4364,19 +4383,7 @@ function extractIssuesSnykIds(listIssues) {
 async function run() {
     try {
         const vulnerabilitiesReport = extractVulnerabilitiesReport();
-        const issueCreator = initIssueCreator();
-        const issueLister = initIssueLister();
-        const listIssues = await issueLister.getListIssues();
-        if (listIssues !== undefined) {
-            const listIssuesTitle = extractIssuesSnykIds(listIssues);
-            for (const report of vulnerabilitiesReport) {
-                for (const vulnerability of report.vulnerabilities) {
-                    if (!listIssuesTitle.includes(vulnerability.id)) {
-                        await issueCreator.createIssue(`${vulnerability.cvssScore} - ${vulnerability.title} [${vulnerability.id}]`, vulnerability.description);
-                    }
-                }
-            }
-        }
+        await createGitHubIssuesForReports(vulnerabilitiesReport);
     }
     catch (error) {
         // Fail the workflow run if an error occurs
