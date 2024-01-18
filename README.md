@@ -50,7 +50,7 @@ need to perform some initial setup steps before you can develop your action.
 
    ...
    ```
-   
+
 ## Development
 
 1. Create a new branch
@@ -134,7 +134,8 @@ steps:
 
 ## Publishing a new release
 
-This project includes a helper script (script/release) designed to streamline the process of
+This project includes a helper script (script/release) designed to 
+streamline the process of
 tagging and pushing new releases for GitHub Actions.
 
 GitHub Actions allows users to select a specific version of the action to use,
