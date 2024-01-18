@@ -134,7 +134,7 @@ steps:
 
 ## Publishing a new release
 
-This project includes a helper script (script/release) designed to 
+This project includes a helper script (script/release) designed to
 streamline the process of
 tagging and pushing new releases for GitHub Actions.
 
