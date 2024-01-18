@@ -8,10 +8,11 @@ export function initIssueCreator(): GithubissueCreator {
     auth: core.getInput('gh-token')
   })
   const repoInfo = core.getInput('repo-info')
+  const assignee = core.getInput('assignee')
   const owner = repoInfo.split('/')[0]
   const repository = repoInfo.split('/')[1]
 
-  return new GithubissueCreator(octokit, owner, repository)
+  return new GithubissueCreator(octokit, owner, repository, assignee)
 }
 
 /**
@@ -28,7 +29,7 @@ export async function run(): Promise<void> {
     vulnerabilitiesTransformer.getFailedReports(vulnerabilities)
 
     const issueCreator = initIssueCreator()
-    console.log(issueCreator)
+
     await issueCreator.createIssue('aaa', 'aaaa')
   } catch (error) {
     // Fail the workflow run if an error occurs

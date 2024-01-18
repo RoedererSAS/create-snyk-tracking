@@ -4198,16 +4198,20 @@ class GithubissueCreator {
     octokit;
     username;
     repository;
-    constructor(octokit, username, repository) {
+    assignee;
+    constructor(octokit, username, repository, assignee) {
         this.octokit = octokit;
         this.username = username;
         this.repository = repository;
+        this.assignee = assignee;
     }
     async createIssue(title, body) {
         try {
             const response = await this.octokit.request('POST /repos/:owner/:repo/issues', {
                 owner: this.username,
                 repo: this.repository,
+                assignees: [this.assignee],
+                labels: ['security'],
                 title,
                 body
             });
@@ -4266,9 +4270,10 @@ function initIssueCreator() {
         auth: core.getInput('gh-token')
     });
     const repoInfo = core.getInput('repo-info');
+    const assignee = core.getInput('assignee');
     const owner = repoInfo.split('/')[0];
     const repository = repoInfo.split('/')[1];
-    return new githubissueCreator_1.GithubissueCreator(octokit, owner, repository);
+    return new githubissueCreator_1.GithubissueCreator(octokit, owner, repository, assignee);
 }
 exports.initIssueCreator = initIssueCreator;
 /**
@@ -4281,7 +4286,6 @@ async function run() {
         const vulnerabilities = vulnerabilitiesTransformer.getVulnerabilitiesFileContent();
         vulnerabilitiesTransformer.getFailedReports(vulnerabilities);
         const issueCreator = initIssueCreator();
-        console.log(issueCreator);
         await issueCreator.createIssue('aaa', 'aaaa');
     }
     catch (error) {

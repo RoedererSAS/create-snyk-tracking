@@ -56,6 +56,7 @@ jobs:
         uses: ./
         with:
           file-path: 'ci-vuln.json'
+          assignee: 'sbierbaumRDR'
           issue-tracker: 'github'
-          gh-token: 'rdr'
-          repo-info: 'tracking'
+          gh-token: ''
+          repo-info: 'RoedererSAS/create-snyk-tracking'

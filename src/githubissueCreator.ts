@@ -8,11 +8,18 @@ export class GithubissueCreator implements IssuecreatorInterface {
   octokit
   username: string
   repository: string
+  assignee: string
 
-  constructor(octokit: Octokit, username: string, repository: string) {
+  constructor(
+    octokit: Octokit,
+    username: string,
+    repository: string,
+    assignee: string
+  ) {
     this.octokit = octokit
     this.username = username
     this.repository = repository
+    this.assignee = assignee
   }
   async createIssue(title: string, body: string): Promise<void> {
     try {
@@ -21,6 +28,8 @@ export class GithubissueCreator implements IssuecreatorInterface {
         {
           owner: this.username,
           repo: this.repository,
+          assignees: [this.assignee],
+          labels: ['security'],
           title,
           body
         }
