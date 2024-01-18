@@ -33,7 +33,7 @@ describe('action', () => {
         case 'issue-tracker':
           return 'github'
         case 'gh-token':
-          return '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'
+          return ''
         case 'repo-info':
           return 'RoedererSAS/create-snyk-tracking'
         default:
