@@ -19,10 +19,16 @@ export class VulnerabilitiesTransformer {
     return fileContents
   }
 
-  getFailedReports(vulnerabilities: SnykReport[]): SnykReport[] {
-    return vulnerabilities.filter((snykReport: SnykReport) => {
-      return !snykReport.ok
-    })
+  getFailedReports(
+    vulnerabilities: SnykReport[] | SnykReport
+  ): SnykReport[] | [] {
+    if (Array.isArray(vulnerabilities)) {
+      return vulnerabilities.filter((snykReport: SnykReport) => {
+        return !snykReport.ok
+      })
+    } else {
+      return !vulnerabilities.ok ? [vulnerabilities] : []
+    }
   }
 
   removeDuplicateVulnerabilities(

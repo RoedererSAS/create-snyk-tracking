@@ -93,4 +93,29 @@ describe('action', () => {
     expect(extractedIds.length).toBe(2)
     expect(extractedIds[0]).toEqual('SNYK-JS-POSTCSS-5926692')
   })
+
+  it('should return no failed reports when there is no vulnerabilities detected', async () => {
+    getInputMock.mockImplementation((name: string): string => {
+      switch (name) {
+        case 'file-path':
+          return '../__tests__/1dependency_scanned.json'
+        case 'issue-tracker':
+          return 'github'
+        case 'gh-token':
+          return ''
+        case 'repo-info':
+          return 'RoedererSAS/create-snyk-tracking'
+        default:
+          return ''
+      }
+    })
+
+    vulnerabilities =
+      vulnerabilitiesTransformer.getVulnerabilitiesFileContent(true)
+
+    const failedReports =
+      vulnerabilitiesTransformer.getFailedReports(vulnerabilities)
+
+    expect(failedReports.length).toBe(0)
+  })
 })
