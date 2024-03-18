@@ -4446,9 +4446,14 @@ class VulnerabilitiesTransformer {
         return fileContents;
     }
     getFailedReports(vulnerabilities) {
-        return vulnerabilities.filter((snykReport) => {
-            return !snykReport.ok;
-        });
+        if (Array.isArray(vulnerabilities)) {
+            return vulnerabilities.filter((snykReport) => {
+                return !snykReport.ok;
+            });
+        }
+        else {
+            return !vulnerabilities.ok ? [vulnerabilities] : [];
+        }
     }
     removeDuplicateVulnerabilities(vulnerabilitiesReport) {
         const uniqueVulnerabilities = vulnerabilitiesReport.reduce((accumulator, current) => {
